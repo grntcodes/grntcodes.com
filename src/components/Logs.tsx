@@ -9,22 +9,67 @@ interface LogEntry {
   type: 'code' | 'deploy' | 'note';
 }
 
+interface GitHubCommit {
+  sha: string;
+  commit: {
+    message: string;
+    author: {
+      date: string;
+    };
+  };
+  repository?: {
+    name: string;
+  };
+}
+
 export default function Logs() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/logs.json')
-      .then(res => res.json())
-      .then(data => {
-        setLogs(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Failed to load logs:', err);
-        setLoading(false);
-      });
+    fetchGitHubActivity();
   }, []);
+
+  const fetchGitHubActivity = async () => {
+    try {
+      // Fetch user's recent events (pushes, commits, etc)
+      const eventsRes = await fetch('https://api.github.com/users/grntcodes/events/public?per_page=30');
+      const events = await eventsRes.json();
+
+      // Filter for push events and extract commits
+      const commitLogs: LogEntry[] = [];
+      let id = 1;
+
+      for (const event of events) {
+        if (event.type === 'PushEvent' && event.payload.commits) {
+          for (const commit of event.payload.commits.slice(0, 1)) { // Take first commit from each push
+            const message = commit.message.split('\n')[0]; // First line only
+            if (message && !message.toLowerCase().includes('merge') && message.length > 10) {
+              commitLogs.push({
+                id: id++,
+                date: new Date(event.created_at).toISOString().split('T')[0],
+                content: message.toLowerCase(),
+                type: 'code'
+              });
+            }
+          }
+        }
+      }
+
+      // Remove duplicates and limit to 8 most recent
+      const uniqueLogs = commitLogs
+        .filter((log, index, self) =>
+          index === self.findIndex(l => l.content === log.content)
+        )
+        .slice(0, 8);
+
+      setLogs(uniqueLogs);
+      setLoading(false);
+    } catch (err) {
+      console.error('Failed to fetch GitHub activity:', err);
+      setLoading(false);
+    }
+  };
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -88,10 +133,9 @@ export default function Logs() {
           {logs.map((log, index) => (
             <div
               key={log.id}
-              className="group bg-[#111] border-l-4 border-[#39ff14]/20 p-6 hover:border-l-[#39ff14] hover:bg-[#111]/80 transition-all duration-300"
+              className="group bg-[#111] border-l-4 border-[#39ff14]/20 p-6 hover:border-l-[#39ff14] hover:bg-[#111]/80 transition-all duration-300 animate-fade-in-up"
               style={{
-                animationDelay: `${index * 0.1}s`,
-                animation: 'fadeInUp 0.6s ease-out forwards'
+                animationDelay: `${index * 0.1}s`
               }}
             >
               <div className="flex items-start space-x-4">
@@ -121,23 +165,10 @@ export default function Logs() {
 
         <div className="mt-12 text-center">
           <div className="inline-block font-mono text-gray-500 text-sm border border-gray-800 px-4 py-2">
-            logs auto-update from /logs.json
+            logs auto-update from github activity
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </section>
   );
 }
