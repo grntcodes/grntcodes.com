@@ -1,5 +1,5 @@
 import React from 'react';
-import { Github, Twitter, Send } from 'lucide-react';
+import { Github, Twitter, Send, Briefcase } from 'lucide-react';
 import CircuitBoard from './CircuitBoard';
 
 export default function About() {
@@ -19,7 +19,15 @@ export default function About() {
           <div className="font-mono text-2xl md:text-4xl text-white leading-tight space-y-4">
             <div className="text-[#39ff14]">grant grey</div>
             <div className="text-gray-300">solana token dev</div>
-            <div className="text-gray-400">infra is culture</div>
+            <a
+              href="https://wifnode.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-2 text-gray-400 hover:text-[#39ff14] transition-colors"
+            >
+              <Briefcase size={24} />
+              <span>building at wifnodes</span>
+            </a>
           </div>
         </div>
 
