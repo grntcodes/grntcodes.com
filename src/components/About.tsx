@@ -37,11 +37,11 @@ export default function About() {
               focus
             </h3>
             <div className="font-mono text-gray-300 space-y-2">
-              <p>• solana program development</p>
-              <p>• anchor framework optimization</p>
-              <p>• spl token architecture</p>
-              <p>• cross-program invocations</p>
+              <p>• smart contract development</p>
+              <p>• token launch infrastructure</p>
               <p>• defi protocol integrations</p>
+              <p>• mev strategies & protection</p>
+              <p>• high-frequency trading systems</p>
             </div>
           </div>
 
@@ -50,9 +50,9 @@ export default function About() {
               stack
             </h3>
             <div className="font-mono text-gray-300 space-y-2">
-              <p>• rust / anchor</p>
-              <p>• typescript / node.js</p>
-              <p>• solana web3.js</p>
+              <p>• rust / move / solidity</p>
+              <p>• typescript / python</p>
+              <p>• evm / svm / movevm</p>
               <p>• docker / kubernetes</p>
               <p>• postgresql / redis</p>
             </div>

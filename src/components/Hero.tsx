@@ -23,7 +23,7 @@ export default function Hero({ onNavigate }: HeroProps) {
         </h2>
         
         <p className="font-mono text-lg text-gray-400 mb-12 tracking-wide">
-          crypto token development on Solana
+          blockchain infrastructure & token systems
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

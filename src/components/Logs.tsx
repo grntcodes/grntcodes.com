@@ -32,36 +32,42 @@ export default function Logs() {
 
   const fetchGitHubActivity = async () => {
     try {
-      // Fetch user's recent events (pushes, commits, etc)
-      const eventsRes = await fetch('https://api.github.com/users/grntcodes/events/public?per_page=30');
-      const events = await eventsRes.json();
+      // Fetch repos first
+      const reposRes = await fetch('https://api.github.com/users/grntcodes/repos?sort=pushed&per_page=5');
+      const repos = await reposRes.json();
 
-      // Filter for push events and extract commits
       const commitLogs: LogEntry[] = [];
       let id = 1;
 
-      for (const event of events) {
-        if (event.type === 'PushEvent' && event.payload.commits) {
-          for (const commit of event.payload.commits.slice(0, 1)) { // Take first commit from each push
-            const message = commit.message.split('\n')[0]; // First line only
+      // Fetch commits from each repo
+      for (const repo of repos.slice(0, 4)) {
+        try {
+          const commitsRes = await fetch(`https://api.github.com/repos/grntcodes/${repo.name}/commits?per_page=5`);
+          const commits = await commitsRes.json();
+
+          for (const commit of commits) {
+            const message = commit.commit?.message?.split('\n')[0];
             if (message && !message.toLowerCase().includes('merge') && message.length > 10) {
               commitLogs.push({
                 id: id++,
-                date: new Date(event.created_at).toISOString().split('T')[0],
+                date: new Date(commit.commit.author.date).toISOString().split('T')[0],
                 content: message.toLowerCase(),
-                type: 'code'
+                type: message.toLowerCase().includes('deploy') ? 'deploy' : 'code'
               });
             }
           }
+        } catch (e) {
+          // Skip repos that fail
         }
       }
 
-      // Remove duplicates and limit to 8 most recent
+      // Sort by date, remove duplicates, limit to 10
       const uniqueLogs = commitLogs
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .filter((log, index, self) =>
           index === self.findIndex(l => l.content === log.content)
         )
-        .slice(0, 8);
+        .slice(0, 10);
 
       setLogs(uniqueLogs);
       setLoading(false);
